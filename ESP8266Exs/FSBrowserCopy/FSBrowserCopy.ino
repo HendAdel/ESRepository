@@ -32,8 +32,8 @@
 
 // Set the wifi network name and password
 #ifndef STASSID
-#define STASSID "Coworking Space"
-#define STAPSK  "M3mal.CW"
+#define STASSID "M3mal Pro"
+#define STAPSK  "M3mal.Pro"
 #endif
 
 const char* ssid = STASSID;
@@ -140,9 +140,9 @@ void handleFileUpload() {
     DBG_OUTPUT_PORT.print("handleFileUpload Name: "); DBG_OUTPUT_PORT.println(filename);
     // open the file in write mode with SPI flash file sytem
     fsUploadFile = SPIFFS.open(filename, "w");
-    // ?? how set the file name to String()?
+    // Clear file name.
     filename = String();
-    // Upload not started but in write status
+    // Upload in write status
   } else if (upload.status == UPLOAD_FILE_WRITE) {
     //DBG_OUTPUT_PORT.print("handleFileUpload Data: "); DBG_OUTPUT_PORT.println(upload.currentSize);
     // Write the file to File system!
@@ -154,67 +154,99 @@ void handleFileUpload() {
     if (fsUploadFile) {
       fsUploadFile.close();
     }
+    // Print the total file size
     DBG_OUTPUT_PORT.print("handleFileUpload Size: "); DBG_OUTPUT_PORT.println(upload.totalSize);
   }
 }
 
+// Delete exists file
 void handleFileDelete() {
+
+  // Check if the url hasn't parameters return bad args
   if (server.args() == 0) {
     return server.send(500, "text/plain", "BAD ARGS");
   }
+  // else set the arguments to the path variable
   String path = server.arg(0);
   DBG_OUTPUT_PORT.println("handleFileDelete: " + path);
+
+  // Check if the url has only the slash / return bad path
   if (path == "/") {
     return server.send(500, "text/plain", "BAD PATH");
   }
-  if (!SPIFFS.exists(path)) {
+  // Check if the file exist in the path
+  if (!SPIFFS.exists(path)) { // not exist return file not found
     return server.send(404, "text/plain", "FileNotFound");
   }
-  SPIFFS.remove(path);
+  // remove the file
+  SPIFFS.remove(path); // file exist
+  // TODO: try to add message the file removed successfully
   server.send(200, "text/plain", "");
+  // Clear the path variable
   path = String();
 }
 
+// Create New file
 void handleFileCreate() {
+  // Check if the url hasn't parameters return bad args
   if (server.args() == 0) {
     return server.send(500, "text/plain", "BAD ARGS");
   }
+  // else set the arguments to the path variable
   String path = server.arg(0);
+
+  // Check if the url has only the slash / return bad path
   DBG_OUTPUT_PORT.println("handleFileCreate: " + path);
   if (path == "/") {
     return server.send(500, "text/plain", "BAD PATH");
   }
-  if (SPIFFS.exists(path)) {
+  // Check if the file exist in the path
+  if (SPIFFS.exists(path)) { // file exist return FILE EXISTS
     return server.send(500, "text/plain", "FILE EXISTS");
   }
+  // File not exist write the file
   File file = SPIFFS.open(path, "w");
+  // if the created close it
   if (file) {
     file.close();
-  } else {
+  } else { // Return Create failed
     return server.send(500, "text/plain", "CREATE FAILED");
   }
+  // TODO: try to add message the file created successfully
   server.send(200, "text/plain", "");
+
+  // Clear the path variable
   path = String();
 }
-
+// 
 void handleFileList() {
-  if (!server.hasArg("dir")) {
+  // Check if the url has parameter "dir"
+  if (!server.hasArg("dir")) { // hasn't return bad args
     server.send(500, "text/plain", "BAD ARGS");
     return;
   }
 
+  // Set the directory name to the path variable
   String path = server.arg("dir");
   DBG_OUTPUT_PORT.println("handleFileList: " + path);
+
+  // Open the directory
   Dir dir = SPIFFS.openDir(path);
+
+  // Clear path
   path = String();
 
+  // Declear variable output and add the directory files in it with comma as separat
   String output = "[";
   while (dir.next()) {
     File entry = dir.openFile("r");
     if (output != "[") {
       output += ',';
     }
+    
     bool isDir = false;
+
+    // add file type and name to the output
     output += "{\"type\":\"";
     output += (isDir) ? "dir" : "file";
     output += "\",\"name\":\"";
@@ -223,17 +255,25 @@ void handleFileList() {
     entry.close();
   }
 
+  // Close the list
   output += "]";
+  // Send the list.
   server.send(200, "text/json", output);
 }
 
 void setup(void) {
+  // start seiral
   DBG_OUTPUT_PORT.begin(115200);
+ 
   DBG_OUTPUT_PORT.print("\n");
   DBG_OUTPUT_PORT.setDebugOutput(true);
+
+  // start the flash file system
   SPIFFS.begin();
   {
+    // Open the folder as Dir
     Dir dir = SPIFFS.openDir("/");
+    // get the files names and sizes 
     while (dir.next()) {
       String fileName = dir.fileName();
       size_t fileSize = dir.fileSize();
@@ -245,11 +285,13 @@ void setup(void) {
 
   //WIFI INIT
   DBG_OUTPUT_PORT.printf("Connecting to %s\n", ssid);
+  // Check if the wifi SSID not = the user defined ssid start the wifi with the user network name and password
   if (String(WiFi.SSID()) != String(ssid)) {
-    WiFi.mode(WIFI_STA);
+    WiFi.mode(WIFI_STA); // I don't know what is the wifif sta mode
     WiFi.begin(ssid, password);
   }
 
+  // make a progress while connecting
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     DBG_OUTPUT_PORT.print(".");
@@ -258,6 +300,7 @@ void setup(void) {
   DBG_OUTPUT_PORT.print("Connected! IP address: ");
   DBG_OUTPUT_PORT.println(WiFi.localIP());
 
+  // start mdns for the file system 
   MDNS.begin(host);
   DBG_OUTPUT_PORT.print("Open http://");
   DBG_OUTPUT_PORT.print(host);
@@ -267,15 +310,15 @@ void setup(void) {
   //SERVER INIT
   //list directory
   server.on("/list", HTTP_GET, handleFileList);
-  //load editor
+  //load editor - open the edit.html file in the browser -
   server.on("/edit", HTTP_GET, []() {
     if (!handleFileRead("/edit.htm")) {
       server.send(404, "text/plain", "FileNotFound");
     }
   });
-  //create file
+  //create file - add each order to it's method -
   server.on("/edit", HTTP_PUT, handleFileCreate);
-  //delete file
+  //delete file 
   server.on("/edit", HTTP_DELETE, handleFileDelete);
   //first callback is called after the request has ended with all parsed arguments
   //second callback handles file uploads at that location
@@ -292,21 +335,27 @@ void setup(void) {
   });
 
   //get heap status, analog input value and all GPIO statuses in one json call
+  // didn't understand what is the heap, GPI and GPO
   server.on("/all", HTTP_GET, []() {
     String json = "{";
     json += "\"heap\":" + String(ESP.getFreeHeap());
-    json += ", \"analog\":" + String(analogRead(A0));
+    json += ", \"analog\":" + String(analogRead(A0)); // Read the analog input
     json += ", \"gpio\":" + String((uint32_t)(((GPI | GPO) & 0xFFFF) | ((GP16I & 0x01) << 16)));
     json += "}";
+    // send the json
     server.send(200, "text/json", json);
+    // clear json variable.
     json = String();
   });
+  // start the server
   server.begin();
   DBG_OUTPUT_PORT.println("HTTP server started");
 
 }
 
 void loop(void) {
+  // didn't understand what is the function for the mdns update.
   server.handleClient();
+  
   MDNS.update();
 }
