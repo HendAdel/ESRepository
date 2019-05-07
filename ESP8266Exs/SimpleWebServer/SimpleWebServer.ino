@@ -6,8 +6,10 @@
 
 // Set the wifi network name and password
 #ifndef STASSID
-#define STASSID "Focus"
-#define STAPSK "Focus@Pro"
+//#define STASSID "Focus"
+//#define STAPSK "Focus@Pro"
+#define STASSID "Mi Phone"
+#define STAPSK "0100@Baba579"
 #endif
 const char* ssid = STASSID;
 const char* password = STAPSK;
@@ -200,8 +202,8 @@ void loop() {
 
   //delay(1000); 
   if((millis() - mytime)>1000){
-    counter++;
     mytime = millis();
+    counter++;    
   }
  
    // didn't understand what is the function for the mdns update.
