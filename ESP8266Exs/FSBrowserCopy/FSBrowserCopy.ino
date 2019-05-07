@@ -32,8 +32,10 @@
 
 // Set the wifi network name and password
 #ifndef STASSID
-#define STASSID "M3mal Pro"
-#define STAPSK  "M3mal.Pro"
+//#define STASSID "Mi Phone"
+//#define STAPSK  "0100@Baba579"
+#define STASSID "Focus"
+#define STAPSK  "Focus@Pro"
 #endif
 
 const char* ssid = STASSID;

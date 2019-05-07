@@ -14,6 +14,10 @@ const char* password = STAPSK;
 // Set the host to the esp8266 file system
 const char* host = "esp2866fs";
 
+// Declare global variable
+int counter = 1;
+long mytime;
+
 // Set the ESP8266 Web Server to port 80
 ESP8266WebServer server(80);
 
@@ -93,6 +97,24 @@ bool handleFileRead(String path) {
   return false;
 }
 
+// the callback function for the request.
+void IncrementVariable(){
+  /*// Check if it the increment request
+  if (server.uri() != "/increment") {
+    return;
+  }
+  delay(1000);*/
+
+  // string array for hold the counter value
+  char tempString[5];
+  //counter++;
+  // use printif because it add the value in the variable and print it.
+  sprintf(tempString,"%d",counter);
+  Serial.println("Counter increment: "+ counter);
+  //send the counter value to the server
+  server.send(200, "text/plain", tempString);
+}
+
 void setup() {
   // Start serial
   Serial.begin(115200);
@@ -111,6 +133,7 @@ void setup() {
     }
     
   }
+  mytime = millis();
 
   // WiFi Init.
   Serial.printf("Connecting to %s\n", ssid);
@@ -154,12 +177,33 @@ void setup() {
       server.send(404, "text/plain", "FileNotFound");
     }
   });
+
+   //call increment function
+   Serial.print("in setup counter = " + counter);
+  server.on("/increment", HTTP_GET, IncrementVariable);
   
+ // Serial.println("Counter: "+ counter);
+  server.on("/all", HTTP_GET, []() {
+    String json = "{";
+    json += "\"counter\":" + String(counter);
+    json += "}";
+    // send the json
+    server.send(200, "text/json", json);
+    // clear json variable.
+    json = String();
+  });
   // start the server
   server.begin();
   Serial.println("HTTP server started");
 }
 void loop() {
+
+  //delay(1000); 
+  if((millis() - mytime)>1000){
+    counter++;
+    mytime = millis();
+  }
+ 
    // didn't understand what is the function for the mdns update.
   server.handleClient();
   

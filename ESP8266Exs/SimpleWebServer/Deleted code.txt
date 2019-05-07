@@ -1,0 +1,7 @@
+var myVar = setInterval(myTimer(counter), 10000);
+
+function myTimer(x) {
+ x++;
+return x;
+  }
+  document.getElementById("demo").innerHTML = myVar.toString();
