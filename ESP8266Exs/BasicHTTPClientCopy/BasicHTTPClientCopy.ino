@@ -42,7 +42,11 @@ void setup() {
   WiFi.mode(WIFI_STA);
   // Add the access point setting
   WiFiMulti.addAP(ssid, password);
+  
+}
 
+void loop() {
+  
   // wait for WiFi connection
   if ((WiFiMulti.run() == WL_CONNECTED)) {
 
@@ -79,9 +83,5 @@ void setup() {
   }
 
   delay(10000);
-  
-}
 
-void loop() {
-  
 }
