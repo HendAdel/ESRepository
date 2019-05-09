@@ -46,7 +46,7 @@ void setup() {
 }
 
 void loop() {
-  
+  /*
   // wait for WiFi connection
   if ((WiFiMulti.run() == WL_CONNECTED)) {
 
@@ -60,7 +60,7 @@ void loop() {
 
       Serial.print("[HTTP] GET...\n");
       // start connection and send HTTP header
-      int httpCode = http.GET();
+      int httpCode = http.POST();
 
       // httpCode will be negative on error
       if (httpCode > 0) {
@@ -83,5 +83,29 @@ void loop() {
   }
 
   delay(10000);
+*/
 
+HTTPClient http;    //Declare object of class HTTPClient
+ 
+  String ADCData, station, postData;
+  int adcvalue = 1;//analogRead(A0);  //Read Analog value of LDR
+  ADCData = String(adcvalue);   //String to interger conversion
+  station = "A";
+ 
+  //Post Data
+  postData = "status=" + ADCData + "&station=" + station ;
+  
+  http.begin("http://192.168.43.128/c4yforum/postdemo.php");              //Specify request destination
+  //http.addHeader("Content-Type", "application/x-www-form-urlencoded");    //Specify content-type header
+ 
+  int httpCode = http.POST(postData);   //Send the request
+  String payload = http.getString();    //Get the response payload
+ 
+  Serial.println(httpCode);   //Print HTTP return code
+  Serial.println(payload);    //Print request response payload
+ 
+  http.end();  //Close connection
+  
+  delay(5000);  //Post Data at every 5 seconds
+  
 }
