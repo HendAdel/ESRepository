@@ -3,8 +3,8 @@
 #include <ESP8266WebServer.h>
 
 #ifndef STASSID
-#define STASSID "Coworking Space"
-#define STAPSK  "M3mal.CW"
+#define STASSID "Focus"
+#define STAPSK  "Focus@Pro"
 #endif
 
 const char* ssid = STASSID;
