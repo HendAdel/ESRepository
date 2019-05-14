@@ -8,8 +8,8 @@
 #ifndef STASSID
 //#define STASSID "Focus"
 //#define STAPSK  "Focus@Pro"
-#define STASSID "MiNetWork"
-#define STAPSK  "0100@"
+#define STASSID "ESPAccessPoint"
+#define STAPSK  "AP@ESP"
 #endif
 
 const char* ssid = STASSID;
@@ -30,7 +30,7 @@ void setup() {
 
   wifiManager.setAPCallback(configModeCallback);
   
-  wifiManager.autoConnect();
+  wifiManager.autoConnect(ssid, ssidPassword);
 
 
  // WiFi.mode(WIFI_STA);
