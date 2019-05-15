@@ -15,18 +15,18 @@
 #include <WiFiClient.h>
 //#include <WiFiClientSecureBearSSL.h>
 
-// Fingerprint for demo URL, expires on June 2, 2019, needs to be updated well before this date
+// Fingerprint for demo URL, expires on June 2, 2019, needs to be updated well before this date    
 //const uint8_t fingerprint[20] = {0x14, 0xEC, 0x6C, 0x23, 0x68, 0x9B, 0x7D, 0xAE, 0x55, 0x70, 0xCB, 0x13, 0x8E, 0x01, 0xD4, 0xEF, 0xB2, 0x12, 0x41, 0x2D};
 
 
 ESP8266WiFiMulti WiFiMulti;
 
 
-const char* ssid = "Focus";
-const char* password = "Focus@Pro";
+//const char* ssid = "Focus";
+//const char* password = "Focus@Pro";
 
-//const char* ssid = "Mi Phone";
-//const char* password = "0100@Baba579";
+const char* ssid = "Mi Phone";
+const char* password = "0100@Baba579";
 
 void setup() {
 
@@ -54,42 +54,42 @@ void loop() {
 
     WiFiClient client;
 
-    // std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
+  // std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
 
     //client->setFingerprint(fingerprint);
 
-    // HTTPClient https;
+   // HTTPClient https;
 
     Serial.println("");
     Serial.print("Connected! IP address: ");
     Serial.println(WiFi.localIP());
-
+    
     HTTPClient http;
     Serial.print("[HTTP] begin...\n");
     // configure traged server and url
     // http.begin(client, "10.2.101.103");
     http.begin(client, "http://192.168.43.58/iisstart.htm");
     http.setAuthorization("guest", "guest");
-
+    
     //http.begin(client, "http://guest:guest@jigsaw.w3.org/HTTP/Basic/");
 
+    
+      // or
+      //https.begin(*client, "https://jigsaw.w3.org/HTTP/connection.html");
+      
+      //or
+      //https.begin(*client, "https://accounts.google.com");
+     // https.setAuthorization("hend.adel", "D15He4I20Y19nd");
+ /*
+      http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
+      http.setAuthorization("guest", "guest");
+   
 
-    // or
-    //https.begin(*client, "https://jigsaw.w3.org/HTTP/connection.html");
-
-    //or
-    //https.begin(*client, "https://accounts.google.com");
-    // https.setAuthorization("hend.adel", "D15He4I20Y19nd");
-    /*
-         http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-         http.setAuthorization("guest", "guest");
-
-
-         // or
-         http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-         http.setAuthorization("Z3Vlc3Q6Z3Vlc3Q=");
-         http.setAuthentication
-    */
+      // or
+      http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
+      http.setAuthorization("Z3Vlc3Q6Z3Vlc3Q=");
+      http.setAuthentication   
+    */  
 
 
     Serial.print("[HTTP] GET...\n");

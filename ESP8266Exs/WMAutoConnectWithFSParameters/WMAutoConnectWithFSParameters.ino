@@ -87,7 +87,7 @@ void setup() {
 
   //set static ip
   //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-
+  
   //add all your parameters here
   wifiManager.addParameter(&custom_http_server);
   wifiManager.addParameter(&custom_http_port);
@@ -99,7 +99,7 @@ void setup() {
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
-
+  
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
   //in seconds

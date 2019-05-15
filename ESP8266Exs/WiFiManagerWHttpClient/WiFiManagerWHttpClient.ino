@@ -14,22 +14,9 @@
 #include <ESP8266WiFiMulti.h>
 #include <ESP8266HTTPClient.h>
 
-// New definitions
 
-char http_server[40];
-char http_port[6] = "8080";
-char* username = "admin";
-char* userpassword = "admin";
-char* APName = "AutoConnectAP";
-char* APPassword = "password";
-char* SSID;
-char* password;
+  // The defntions from WiFi Manager
 
-//flag for saving data
-bool shouldSaveConfig = false;
-
-// The definitions from WiFi Manager
-/*
   //define your default values here, if there are different values in config.json, they are overwritten.
   char http_server[40];
   char http_port[6] = "8080";
@@ -37,28 +24,23 @@ bool shouldSaveConfig = false;
 
   //flag for saving data
   bool shouldSaveConfig = false;
-
-  // For first test
   char* APName = "AutoConnectAP";
   char* APPassword = "password";
   char* StaName = "Profit";
   char* StaPassword = "Pro.Profit";
-*/
 
-// The definitions from http client
-/*
-  #ifndef STASSID
-  #define STASSID "Focus"
-  #define STAPSK  "Focus@Pro"
-  #endif
+   // The defntions from http client
+/* 
+#ifndef STASSID
+#define STASSID "Focus"
+#define STAPSK  "Focus@Pro"
+#endif
 
-  const char* ssid = STASSID;
-  const char* password = STAPSK;
+const char* ssid = STASSID;
+const char* password = STAPSK;
 */
 ESP8266WebServer server(http_port[6]);
 ESP8266WiFiMulti WiFiMulti;
-
-
 
 // Methods from WiFi Manager
 //callback notifying us of the need to save config
@@ -101,7 +83,7 @@ void handleLogin() {
     return;
   }
   if (server.hasArg("USERNAME") && server.hasArg("PASSWORD")) {
-    if (server.arg("USERNAME") == username &&  server.arg("PASSWORD") == userpassword) {
+    if (server.arg("USERNAME") == "admin" &&  server.arg("PASSWORD") == "admin") {
       server.sendHeader("Location", "/");
       server.sendHeader("Cache-Control", "no-cache");
       server.sendHeader("Set-Cookie", "ESPSESSIONID=1");
@@ -112,7 +94,7 @@ void handleLogin() {
     msg = "Wrong username/password! try again.";
     Serial.println("Log in Failed");
   }
-  String content = String("<html><body><form action='/login' method='POST'>To log in, please use : ") + username + "/" + userpassword + "<br>";
+  String content = "<html><body><form action='/login' method='POST'>To log in, please use : admin/admin<br>";
   content += "User:<input type='text' name='USERNAME' placeholder='user name'><br>";
   content += "Password:<input type='password' name='PASSWORD' placeholder='password'><br>";
   content += "<input type='submit' name='SUBMIT' value='Submit'></form>" + msg + "<br>";
@@ -135,7 +117,7 @@ void handleRoot() {
     content += "the user agent used is : " + server.header("User-Agent") + "<br><br>";
   }
   content += "You can access this page until you <a href=\"/login?DISCONNECT=YES\">disconnect</a></body></html>";
-
+  
   server.sendHeader("Set-Cookie", "ESPSESSIONID=0");
   server.send(200, "text/html", content);
 }
@@ -157,14 +139,14 @@ void handleNotFound() {
 }
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println();
+   Serial.begin(115200);
+   Serial.println();
 
-  // WiFi Manager setup code ****************************************** Start****************************
-  //read configuration from FS json
-  Serial.println("mounting FS...");
+   // WiFi Manager setup code ****************************************** Start****************************
+   //read configuration from FS json
+   Serial.println("mounting FS...");
 
-  if (SPIFFS.begin()) {
+   if (SPIFFS.begin()) {
     Serial.println("mounted file system");
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
@@ -182,13 +164,11 @@ void setup() {
         json.printTo(Serial);
         if (json.success()) {
           Serial.println("\nparsed json");
-          /*
-            char username[34] = "admin";
-            char userpassword[34] = "admin";*/
-          strcpy(http_server, json["http_server"]);
-          strcpy(http_port, json["http_port"]);
-          strcpy(username, json["username"]);
-          strcpy(userpassword, json["userpassword"]);
+
+          strcpy(http_server, json["mqtt_server"]);
+          strcpy(http_port, json["mqtt_port"]);
+          strcpy(blynk_token, json["blynk_token"]);
+
         } else {
           Serial.println("failed to load json config");
         }
@@ -207,8 +187,7 @@ void setup() {
   // id/name placeholder/prompt default length
   WiFiManagerParameter custom_http_server("server", "http server", http_server, 40);
   WiFiManagerParameter custom_http_port("port", "http port", http_port, 6);
-  WiFiManagerParameter custom_username("username", "username", username, 32);
-  WiFiManagerParameter custom_userpassword("userpassword", "userpassword", userpassword, 32);
+  WiFiManagerParameter custom_blynk_token("blynk", "blynk token", blynk_token, 32);
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -219,12 +198,11 @@ void setup() {
 
   //set static ip
   //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-
+  
   //add all your parameters here
   wifiManager.addParameter(&custom_http_server);
   wifiManager.addParameter(&custom_http_port);
-  wifiManager.addParameter(&custom_username);
-  wifiManager.addParameter(&custom_userpassword);
+  wifiManager.addParameter(&custom_blynk_token);
 
   //reset settings - for testing
   //wifiManager.resetSettings();
@@ -232,7 +210,7 @@ void setup() {
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
-
+  
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
   //in seconds
@@ -242,7 +220,7 @@ void setup() {
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
-  if (!wifiManager.autoConnect(APName, APPassword)) {
+  if (!wifiManager.autoConnect("AutoConnectAP", "password")) {
     Serial.println("failed to connect and hit timeout");
     delay(3000);
     //reset and try again, or maybe put it to deep sleep
@@ -262,14 +240,13 @@ void setup() {
 
   WiFi.mode(WIFI_STA);
   WiFiMulti.addAP(StaName, StaPassword);
-
+  
   // Http client code ########################################## End ######################################
-
+  
   //read updated parameters
   strcpy(http_server, custom_http_server.getValue());
   strcpy(http_port, custom_http_port.getValue());
-  strcpy(username, custom_username.getValue());
-  strcpy(userpassword, custom_userpassword.getValue());
+  strcpy(blynk_token, custom_blynk_token.getValue());
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
@@ -278,8 +255,7 @@ void setup() {
     JsonObject& json = jsonBuffer.createObject();
     json["mqtt_server"] = http_server;
     json["mqtt_port"] = http_port;
-    json["username"] = username;
-    json["userpassword"] = userpassword;
+    json["blynk_token"] = blynk_token;
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
@@ -304,42 +280,42 @@ void loop() {
 
     WiFiClient client;
 
-    // std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
+  // std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
 
     //client->setFingerprint(fingerprint);
 
-    // HTTPClient https;
+   // HTTPClient https;
 
     Serial.println("");
     Serial.print("Connected! IP address: ");
     Serial.println(WiFi.localIP());
-
+    
     HTTPClient http;
     Serial.print("[HTTP] begin...\n");
     // configure traged server and url
     // http.begin(client, "10.2.101.103");
     http.begin(client, "http://192.168.43.58/iisstart.htm");
-    http.setAuthorization(username, userpassword);
-
+    http.setAuthorization("guest", "guest");
+    
     //http.begin(client, "http://guest:guest@jigsaw.w3.org/HTTP/Basic/");
 
+    
+      // or
+      //https.begin(*client, "https://jigsaw.w3.org/HTTP/connection.html");
+      
+      //or
+      //https.begin(*client, "https://accounts.google.com");
+     // https.setAuthorization("hend.adel", "D15He4I20Y19nd");
+ /*
+      http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
+      http.setAuthorization("guest", "guest");
+   
 
-    // or
-    //https.begin(*client, "https://jigsaw.w3.org/HTTP/connection.html");
-
-    //or
-    //https.begin(*client, "https://accounts.google.com");
-    // https.setAuthorization("hend.adel", "D15He4I20Y19nd");
-    /*
-         http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-         http.setAuthorization("guest", "guest");
-
-
-         // or
-         http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-         http.setAuthorization("Z3Vlc3Q6Z3Vlc3Q=");
-         http.setAuthentication
-    */
+      // or
+      http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
+      http.setAuthorization("Z3Vlc3Q6Z3Vlc3Q=");
+      http.setAuthentication   
+    */  
 
 
     Serial.print("[HTTP] GET...\n");
