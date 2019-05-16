@@ -1,10 +1,16 @@
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-
+/*
 #ifndef STASSID
 #define STASSID "Focus"
 #define STAPSK  "Focus@Pro"
+#endif
+*/
+
+#ifndef STASSID
+#define STASSID "Mi Phone"
+#define STAPSK  "0100@Baba579"
 #endif
 
 const char* ssid = STASSID;
