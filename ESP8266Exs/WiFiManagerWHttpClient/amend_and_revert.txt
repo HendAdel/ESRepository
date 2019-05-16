@@ -1,0 +1,3 @@
+we can add the stashed files in last commit without make new one. 
+git commit --amend --no-edit
+--no -edit mean no changes in commit message.
