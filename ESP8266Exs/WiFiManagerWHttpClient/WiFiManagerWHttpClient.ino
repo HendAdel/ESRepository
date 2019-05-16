@@ -18,8 +18,8 @@
 
 char http_server[40];
 char http_port[6] = "8080";
-char* username = "admin";
-char* userpassword = "admin";
+char username[34] = "admin";
+char userpassword[34] = "admin";
 char* APName = "AutoConnectAP";
 char* APPassword = "password";
 char* SSID;
@@ -55,7 +55,7 @@ bool shouldSaveConfig = false;
   const char* ssid = STASSID;
   const char* password = STAPSK;
 */
-ESP8266WebServer server(http_port[6]);
+ESP8266WebServer server(90);
 ESP8266WiFiMulti WiFiMulti;
 
 
@@ -100,8 +100,12 @@ void handleLogin() {
     server.send(301);
     return;
   }
+  String usernameStr(username);
+  String userpasswordStr(userpassword);
+
   if (server.hasArg("USERNAME") && server.hasArg("PASSWORD")) {
-    if (server.arg("USERNAME") == username &&  server.arg("PASSWORD") == userpassword) {
+
+    if (server.arg("USERNAME") == usernameStr &&  server.arg("PASSWORD") == userpasswordStr) {
       server.sendHeader("Location", "/");
       server.sendHeader("Cache-Control", "no-cache");
       server.sendHeader("Set-Cookie", "ESPSESSIONID=1");
@@ -112,7 +116,7 @@ void handleLogin() {
     msg = "Wrong username/password! try again.";
     Serial.println("Log in Failed");
   }
-  String content = String("<html><body><form action='/login' method='POST'>To log in, please use : ") + username + "/" + userpassword + "<br>";
+  String content = String("<html><body><form action='/login' method='POST'>To log in, please use : ") + usernameStr + "/" + userpasswordStr + "<br>";
   content += "User:<input type='text' name='USERNAME' placeholder='user name'><br>";
   content += "Password:<input type='password' name='PASSWORD' placeholder='password'><br>";
   content += "<input type='submit' name='SUBMIT' value='Submit'></form>" + msg + "<br>";
@@ -156,17 +160,8 @@ void handleNotFound() {
   server.send(404, "text/plain", message);
 }
 
-void setup() {
-  Serial.begin(115200);
-  Serial.println();
-
-  // WiFi Manager setup code ****************************************** Start****************************
-  //read configuration from FS json
-  Serial.println("mounting FS...");
-
-  if (SPIFFS.begin()) {
-    Serial.println("mounted file system");
-    if (SPIFFS.exists("/config.json")) {
+void ReadConfig(){
+  if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
       Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
@@ -195,6 +190,19 @@ void setup() {
         configFile.close();
       }
     }
+}
+
+void setup() {
+  Serial.begin(115200);
+  Serial.println();
+
+  // WiFi Manager setup code ****************************************** Start****************************
+  //read configuration from FS json
+  Serial.println("mounting FS...");
+
+  if (SPIFFS.begin()) {
+    Serial.println("mounted file system");
+    ReadConfig();
   } else {
     Serial.println("failed to mount FS");
   }
@@ -252,19 +260,6 @@ void setup() {
 
   //if you get here you have connected to the WiFi
   Serial.println("connected...yeey :)");
-
-  // Http client code ########################################## Start ######################################
-  for (uint8_t t = 4; t > 0; t--) {
-    Serial.printf("[SETUP] WAIT %d...\n", t);
-    Serial.flush();
-    delay(1000);
-  }
-
-  WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP(StaName, StaPassword);
-
-  // Http client code ########################################## End ######################################
-
   //read updated parameters
   strcpy(http_server, custom_http_server.getValue());
   strcpy(http_port, custom_http_port.getValue());
@@ -276,8 +271,8 @@ void setup() {
     Serial.println("saving config");
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
-    json["mqtt_server"] = http_server;
-    json["mqtt_port"] = http_port;
+    json["http_server"] = http_server;
+    json["http_port"] = http_port;
     json["username"] = username;
     json["userpassword"] = userpassword;
 
@@ -290,6 +285,38 @@ void setup() {
     json.printTo(configFile);
     configFile.close();
     //end save
+    ReadConfig();
+    
+  // Http client code ########################################## Start ######################################
+
+  server.on("/", handleRoot);
+  server.on("/login", handleLogin);
+  server.on("/inline", []() {
+    server.send(200, "text/plain", "this works without need of authentication");
+  });
+
+  server.onNotFound(handleNotFound);
+  //here the list of headers to be recorded
+  const char * headerkeys[] = {"User-Agent", "Cookie"} ;
+  size_t headerkeyssize = sizeof(headerkeys) / sizeof(char*);
+  int port = atoi(http_port);
+  Serial.println("Port No." + port);
+  Serial.println(port , DEC);
+  //ask server to track these headers
+  server.collectHeaders(headerkeys, headerkeyssize);
+  if (port) {
+    server.begin(port);
+    Serial.println("HTTP server started");
+  }
+  else {
+    Serial.println("invalid port number...");
+
+  }
+
+
+  // Http client code ########################################## End ######################################
+
+
   }
 
   Serial.println("local ip");
@@ -298,71 +325,7 @@ void setup() {
 }
 
 void loop() {
-  // Http Client code
-  // wait for WiFi connection
-  if ((WiFiMulti.run() == WL_CONNECTED)) {
 
-    WiFiClient client;
-
-    // std::unique_ptr<BearSSL::WiFiClientSecure>client(new BearSSL::WiFiClientSecure);
-
-    //client->setFingerprint(fingerprint);
-
-    // HTTPClient https;
-
-    Serial.println("");
-    Serial.print("Connected! IP address: ");
-    Serial.println(WiFi.localIP());
-
-    HTTPClient http;
-    Serial.print("[HTTP] begin...\n");
-    // configure traged server and url
-    // http.begin(client, "10.2.101.103");
-    http.begin(client, "http://192.168.43.58/iisstart.htm");
-    http.setAuthorization(username, userpassword);
-
-    //http.begin(client, "http://guest:guest@jigsaw.w3.org/HTTP/Basic/");
-
-
-    // or
-    //https.begin(*client, "https://jigsaw.w3.org/HTTP/connection.html");
-
-    //or
-    //https.begin(*client, "https://accounts.google.com");
-    // https.setAuthorization("hend.adel", "D15He4I20Y19nd");
-    /*
-         http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-         http.setAuthorization("guest", "guest");
-
-
-         // or
-         http.begin(client, "http://jigsaw.w3.org/HTTP/Basic/");
-         http.setAuthorization("Z3Vlc3Q6Z3Vlc3Q=");
-         http.setAuthentication
-    */
-
-
-    Serial.print("[HTTP] GET...\n");
-    // start connection and send HTTP header
-    int httpCode = http.GET();
-
-    // httpCode will be negative on error
-    if (httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
-      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
-
-      // file found at server
-      if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        Serial.println(payload);
-      }
-    } else {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
-    }
-
-    http.end();
-  }
-
-  delay(10000);
+  server.handleClient();
 
 }

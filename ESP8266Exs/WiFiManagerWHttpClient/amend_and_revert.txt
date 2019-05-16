@@ -4,3 +4,5 @@ git commit --amend --no-edit
 --no -edit mean no changes in commit message.
 we use revert it creates new commit to reverse the effect of some earlier commits. 
 And can use it to show the difference between 2 versions.
+git revert <hash>
+git diff <revert hash code> 
