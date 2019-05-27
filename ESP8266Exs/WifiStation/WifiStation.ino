@@ -4,8 +4,8 @@
 #include <ESP8266WiFi.h>
 
 // Set the wifi network settings - name and password -
-const char* ssid = "Coworking Space";
-const char* password = "M3mal.CW";
+const char* ssid = "Focus";
+const char* password = "Focus@Pro";
 
 void setup() {
   // wait 1 second

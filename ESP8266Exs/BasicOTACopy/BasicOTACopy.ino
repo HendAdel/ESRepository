@@ -1,6 +1,3 @@
-
-//ESP8266 Blink Sketch
-
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
@@ -14,15 +11,20 @@
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
+//variabls for blinking an LED with Millis
+//const int led = 2; // ESP8266 Pin to which onboard LED is connected
+//unsigned long previousMillis = 0;  // will store last time LED was updated
+//const long interval = 1000;  // interval at which to blink (milliseconds)
+//int ledState = LOW;  // ledState used to set the LED
 
-int ledPin = 2;
+const int ledPin = 2;
+int i =0;
 
 void setup() {
-  // Initalize the ledPin pin as an output.
   pinMode(ledPin, OUTPUT);
   Serial.begin(115200);
-  Serial.println("Start...");
-   WiFi.mode(WIFI_STA);
+  Serial.println("Booting");
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.waitForConnectResult() != WL_CONNECTED) {
     Serial.println("Connection Failed! Rebooting...");
@@ -30,7 +32,7 @@ void setup() {
     ESP.restart();
   }
 
-// Port defaults to 8266
+  // Port defaults to 8266
   // ArduinoOTA.setPort(8266);
 
   // Hostname defaults to esp8266-[ChipID]
@@ -39,10 +41,10 @@ void setup() {
   // No authentication by default
    ArduinoOTA.setPassword("admin");
 
-   //Password can be set with it's md5 value as well
-   //MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+  // Password can be set with it's md5 value as well
+  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
   // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-  
+
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH) {
@@ -78,18 +80,47 @@ void setup() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+  //pinMode(2, OUTPUT);
 }
 
+bool ota_flag = true;
+uint16_t time_elapsed = 0;
+
 void loop() {
-  ArduinoOTA.handle();
-  // Onboard LED is on, and the LED connected to pin D0 is off.
-  digitalWrite(ledPin, LOW);
-  // Wait for a second
-  delay(2000);
-  // Onboard LED is off, and the LED connected to pin D0 is on.
-  digitalWrite(ledPin, HIGH);
-  // Wait for a second
-  delay(2000);
-  
-  Serial.println("In loop with over the air upload OTA...");
+    if (ota_flag)
+    {
+      while (time_elapsed < 10000)
+      {
+        ArduinoOTA.handle();
+        time_elapsed = millis();
+        delay(100);
+      }
+      ota_flag = false;
+    }
+    Serial.println("in loop test the password");
+  //ArduinoOTA.handle();
+  //  digitalWrite(2, LOW);
+  //  delay(1000);
+  //  digitalWrite(2, HIGH);
+  //  delay(2000);
+  //loop to blink without delay
+//  unsigned long currentMillis = millis();
+//  if (currentMillis - previousMillis <= interval) {
+//    // save the last time you blinked the LED
+//    previousMillis = currentMillis;
+//    // if the LED is off turn it on and vice-versa:
+//    ledState = not(ledState);
+//    // set the LED with the ledState of the variable:
+//    digitalWrite(led,  ledState);
+//  }
+  /*for(i = 0; i < 255; i++)
+  {
+    analogWrite(ledPin, i);
+    delay(10);
+  }
+  for(i = 255; i > 0; i--)
+  {
+    analogWrite(ledPin, i);
+    delay(10);
+  }*/
 }
