@@ -45,5 +45,4 @@ void setup(void) {
 void loop(void) {
   httpServer.handleClient();
   MDNS.update();
-  Serial.println("In loop after upload.");
 }

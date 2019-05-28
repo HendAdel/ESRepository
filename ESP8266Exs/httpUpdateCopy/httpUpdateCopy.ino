@@ -57,7 +57,7 @@ void loop() {
     // value is used to put the LED on. If the LED is on with HIGH, that value should be passed
     ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://http://www.the-diy-life.co/file.bin");
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://http://www.the-diy-life.co/httpUpdateCopy.ino.nodemcu.bin");
     // Or:
     //t_httpUpdate_return ret = ESPhttpUpdate.update(client, "server", 80, "file.bin");
 
@@ -74,5 +74,7 @@ void loop() {
         USE_SERIAL.println("HTTP_UPDATE_OK");
         break;
     }
+    
+  Serial.println("I will call the binary from the page.");
   }
 }
