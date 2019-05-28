@@ -12,15 +12,19 @@
 
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
+#define FIRMWARE_VERSION "1.4.3"
+
 
 #define USE_SERIAL Serial
 
 #ifndef APSSID
-#define APSSID "Focus"
-#define APPSK  "Focus@Pro"
+#define APSSID "Mi Phone"
+#define APPSK  "0100@Baba579"
 #endif
-
-ESP8266WiFiMulti WiFiMulti;
+// Set the wifi network settings - name and password -
+const char* ssid = "Mi Phone";
+const char* password = "0100@Baba579";
+//ESP8266WiFiMulti WiFiMulti;
 
 void setup() {
 
@@ -31,21 +35,33 @@ void setup() {
   USE_SERIAL.println();
   USE_SERIAL.println();
 
-  for (uint8_t t = 4; t > 0; t--) {
-    USE_SERIAL.printf("[SETUP] WAIT %d...\n", t);
-    USE_SERIAL.flush();
-    delay(1000);
+//  for (uint8_t t = 4; t > 0; t--) {
+//    USE_SERIAL.printf("[SETUP] WAIT %d...\n", t);
+//    USE_SERIAL.flush();
+//    delay(1000);
+//  }
+  // start wifi
+  WiFi.begin(ssid, password);
+
+  //Write a message on the screen
+  Serial.println();
+  Serial.print("Connecting");
+
+  // loap to show connecting progress on the screen
+  while (WiFi.status() != WL_CONNECTED){
+    delay(500);
+    Serial.print(".");
   }
 
-  WiFi.mode(WIFI_STA);
-  WiFiMulti.addAP(APSSID, APPSK);
-
-
+  // After connect Write a message on the screen with the IP address
+  Serial.println("Uploaded  Success");
+  Serial.print("IP Address is: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop() {
   // wait for WiFi connection
-  if ((WiFiMulti.run() == WL_CONNECTED)) {
+  //if ((WiFiMulti.run() == WL_CONNECTED)) {
 
     WiFiClient client;
 
@@ -55,12 +71,12 @@ void loop() {
     // On a good connection the LED should flash regularly. On a bad connection the LED will be
     // on much longer than it will be off. Other pins than LED_BUILTIN may be used. The second
     // value is used to put the LED on. If the LED is on with HIGH, that value should be passed
-    ESPhttpUpdate.setLedPin(LED_BUILTIN, LOW);
+    ESPhttpUpdate.setLedPin(2, LOW);
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://http://www.the-diy-life.co/httpUpdateCopy.ino.nodemcu.bin");
+    t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://www.the-diy-life.co/download.bin");
     // Or:
     //t_httpUpdate_return ret = ESPhttpUpdate.update(client, "server", 80, "file.bin");
-
+    Serial.println("switch case for the returned result.");
     switch (ret) {
       case HTTP_UPDATE_FAILED:
         USE_SERIAL.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
@@ -74,7 +90,9 @@ void loop() {
         USE_SERIAL.println("HTTP_UPDATE_OK");
         break;
     }
-    
-  Serial.println("I will call the binary from the page.");
-  }
+//  }else {
+//      Serial.println("No connection");
+//      delay(1000);
+//  
+//  }
 }

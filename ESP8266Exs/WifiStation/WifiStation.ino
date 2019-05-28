@@ -4,8 +4,8 @@
 #include <ESP8266WiFi.h>
 
 // Set the wifi network settings - name and password -
-const char* ssid = "Focus";
-const char* password = "Focus@Pro";
+const char* ssid = "Mi Phone";
+const char* password = "0100@Baba579";
 
 void setup() {
   // wait 1 second
