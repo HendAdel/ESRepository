@@ -29,54 +29,54 @@
 const char* ssid = "Focus";
 const char* password = "Focus@Pro";
 //ESP8266WiFiMulti WiFiMulti;
+WiFiClient client;
 
-void readfile() {
-  FILE *fptr;
-  char* fname = "Firmware_Version.txt";
-  char str;
-  char singleLine[150];
-  USE_SERIAL.printf("\n\n Read an existing file :\n");
-  USE_SERIAL.printf("------------------------------\n");
-  USE_SERIAL.printf(" Input the filename to be opened : ");
-  scanf("%s", fname);
-  fptr = fopen (fname, "r");
-  if (fptr == NULL)
-  {
-    USE_SERIAL.printf(" File does not exist or cannot be opened.\n");
-    exit(0);
-  }
-  USE_SERIAL.printf("\n The content of the file %s is  :\n", fname);
-  str = fgetc(fptr);
-  USE_SERIAL.printf("The content of the file is %d" + str);
-  //while (!feof(fptr)) {
-    fgets(singleLine, 150, fptr);
-    USE_SERIAL.printf ("The new line is: %c", singleLine);
-    //break;
- // }
-  while (str != EOF)
-  {
-    USE_SERIAL.printf ("%c", str);
-    str = fgetc(fptr);
+HTTPClient http;
 
-    if (str == '1.4.2') {
-      USE_SERIAL.printf("Version is %d" + str);
+bool read_file() {
+
+  bool updated; if (http.begin(client, "http://www.the-diy-life.co/Firmware_Version.txt")) {  // HTTP
+
+    Serial.print("[HTTP] GET...\n");
+    // start connection and send HTTP header
+    int httpCode = http.GET();
+    char payload_buff[10];
+    char Cversion_buff[10] = FIRMWARE_VERSION;
+    // httpCode will be negative on error
+    if (httpCode > 0) {
+      // HTTP header has been send and Server response header has been handled
+      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+      // file found at server
+      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+
+        String payload = http.getString();
+        Serial.println("server version is: " + payload);
+        payload.toCharArray(payload_buff, 10);
+        if (strcmp(Cversion_buff, payload_buff) == 0) {
+          updated = true;
+          Serial.println("server version is updated");
+        }
+        else {
+          updated = false;
+          Serial.println("server version is not updated");
+        }
+      }
     }
     else {
-      USE_SERIAL.printf("Version is not equal :\n");
-      break;
+      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
     }
+    http.end();
+  } else {
+    Serial.printf("[HTTP} Unable to connect\n");
   }
-  fclose(fptr);
-  USE_SERIAL.printf("\n\n");
+  return updated;
 }
 
 void setup() {
 
   USE_SERIAL.begin(115200);
   // USE_SERIAL.setDebugOutput(true);
-  USE_SERIAL.println("In setup.");
-  readfile();
-  USE_SERIAL.println("In setup after read the file.");
 
   USE_SERIAL.println();
   USE_SERIAL.println();
@@ -108,38 +108,44 @@ void setup() {
 
 void loop() {
   // wait for WiFi connection
-  //if ((WiFiMulti.run() == WL_CONNECTED)) {
+  // if ((WiFiMulti.run() == WL_CONNECTED)) {
 
-  WiFiClient client;
+    //WiFiClient client;
 
-  // The line below is optional. It can be used to blink the LED on the board during flashing
-  // The LED will be on during download of one buffer of data from the network. The LED will
-  // be off during writing that buffer to flash
-  // On a good connection the LED should flash regularly. On a bad connection the LED will be
-  // on much longer than it will be off. Other pins than LED_BUILTIN may be used. The second
-  // value is used to put the LED on. If the LED is on with HIGH, that value should be passed
-  ESPhttpUpdate.setLedPin(2, LOW);
+    // The line below is optional. It can be used to blink the LED on the board during flashing
+    // The LED will be on during download of one buffer of data from the network. The LED will
+    // be off during writing that buffer to flash
+    // On a good connection the LED should flash regularly. On a bad connection the LED will be
+    // on much longer than it will be off. Other pins than LED_BUILTIN may be used. The second
+    // value is used to put the LED on. If the LED is on with HIGH, that value should be passed
+    ESPhttpUpdate.setLedPin(2, LOW);
+    bool  updated = read_file();
+    Serial.println("returend value from the method is: " + updated);
+    if (updated == false) {
+      Serial.println("updated = false");
+      t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://www.the-diy-life.co/update.bin");
+      // Or:
+      //t_httpUpdate_return ret = ESPhttpUpdate.update(client, "server", 80, "file.bin");
+      Serial.println("switch case for the returned result.");
+      switch (ret) {
+        case HTTP_UPDATE_FAILED:
+          USE_SERIAL.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+          break;
 
-  t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://www.the-diy-life.co/download.bin");
-  // Or:
-  //t_httpUpdate_return ret = ESPhttpUpdate.update(client, "server", 80, "file.bin");
-  Serial.println("switch case for the returned result.");
-  switch (ret) {
-    case HTTP_UPDATE_FAILED:
-      USE_SERIAL.printf("HTTP_UPDATE_FAILD Error (%d): %s\n", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-      break;
+        case HTTP_UPDATE_NO_UPDATES:
+          USE_SERIAL.println("HTTP_UPDATE_NO_UPDATES");
+          break;
 
-    case HTTP_UPDATE_NO_UPDATES:
-      USE_SERIAL.println("HTTP_UPDATE_NO_UPDATES");
-      break;
+        case HTTP_UPDATE_OK:
+          USE_SERIAL.println("HTTP_UPDATE_OK");
+          break;
+      }
+    }
+//  }
+//  else {
+//    Serial.println("No connection");
+//    delay(1000);
+//
+//  }
 
-    case HTTP_UPDATE_OK:
-      USE_SERIAL.println("HTTP_UPDATE_OK");
-      break;
-  }
-  //  }else {
-  //      Serial.println("No connection");
-  //      delay(1000);
-  //
-  //  }
 }
