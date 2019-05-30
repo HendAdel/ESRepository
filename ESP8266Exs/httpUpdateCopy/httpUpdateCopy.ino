@@ -123,7 +123,7 @@ void loop() {
     Serial.println("returend value from the method is: " + updated);
     if (updated == false) {
       Serial.println("updated = false");
-      t_httpUpdate_return ret = ESPhttpUpdate.update(client, "http://www.the-diy-life.co/update.bin");
+      t_httpUpdate_return ret = ESPhttpUpdate.update(client, "server/file.bin");
       // Or:
       //t_httpUpdate_return ret = ESPhttpUpdate.update(client, "server", 80, "file.bin");
       Serial.println("switch case for the returned result.");
