@@ -70,7 +70,6 @@ String getContentType(String filename) {
   return "text/plain";
 }
 
-
 // Read the file
 bool handleFileRead(String path) {
   Serial.println("handleFileRead: " + path);
