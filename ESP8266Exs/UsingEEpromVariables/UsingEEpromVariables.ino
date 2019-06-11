@@ -72,6 +72,7 @@ void loop() {
     mytime = millis();
     Serial.println("timeInterval is: " + String(timeInterval));  
     Serial.println("mytime is: " + String(millis() - mytime));  
+    digitalReader = digitalRead(digitalInput);
     makeHTTPRequest();
   }
 }
