@@ -54,6 +54,67 @@ String formatBytes(size_t bytes) {
   }
 }
 
+
+// check for the file extension to get the file type.
+String getContentType(String filename) {
+  if (espServer.hasArg("download")) {
+    return "application/octet-stream";
+  } else if (filename.endsWith(".htm")) {
+    return "text/html";
+  } else if (filename.endsWith(".html")) {
+    return "text/html";
+  } else if (filename.endsWith(".css")) {
+    return "text/css";
+  } else if (filename.endsWith(".js")) {
+    return "application/javascript";
+  } else if (filename.endsWith(".png")) {
+    return "image/png";
+  } else if (filename.endsWith(".gif")) {
+    return "image/gif";
+  } else if (filename.endsWith(".jpg")) {
+    return "image/jpeg";
+  } else if (filename.endsWith(".ico")) {
+    return "image/x-icon";
+  } else if (filename.endsWith(".xml")) {
+    return "text/xml";
+  } else if (filename.endsWith(".pdf")) {
+    return "application/x-pdf";
+  } else if (filename.endsWith(".zip")) {
+    return "application/x-zip";
+  } else if (filename.endsWith(".gz")) {
+    return "application/x-gzip";
+  }
+  return "text/plain";
+}
+
+// Read the file
+bool handleFileRead(String path) {
+  Serial.println("handleFileRead: " + path);
+  // If the path is the root add the index.htm to it.
+  if (path.endsWith("/")) {
+    path += "settings.htm";
+  }
+  // call the getContentType method and set the result to string varible.
+  String contentType = getContentType(path);
+  // Compress the file
+  String pathWithGz = path + ".gz";
+
+  //Check if the file exist on the flash file system zip or unzip.
+  if (SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)) {
+    // Check again if the ziped file exist. I don't understand why and why zip it again!?
+    if (SPIFFS.exists(pathWithGz)) {
+      path += ".gz";
+    }
+    // Open the file in read mode
+    File file = SPIFFS.open(path, "r");
+    espServer.streamFile(file, contentType);
+    // close the file.
+    file.close();
+    return true;
+  }
+  return false;
+}
+
 void setup() {
 
   Serial.begin(115200);
@@ -114,11 +175,11 @@ void setup() {
   Serial.print("Open http://");
   Serial.print(host);
   Serial.println(".local to see the home page");
-  //  espServer.onNotFound([]() {
-  //    if (!handleFileRead(espServer.uri())) {
-  //      espServer.send(404, "text/plain", "FileNotFound");
-  //    }
-  //  });
+  espServer.onNotFound([]() {
+    if (!handleFileRead(espServer.uri())) {
+      espServer.send(404, "text/plain", "FileNotFound");
+    }
+  });
 
   //espServer.on("/",HTTP_GET, webpage);
   espServer.on("/", HTTP_POST, response);
@@ -128,6 +189,10 @@ void setup() {
 }
 
 void loop() {
+  espServer.handleClient();
+
+  MDNS.update();
+
   // make the request if the interval is valid
   if ((millis() - mytime) > (timeInterval * 1000)) {
     mytime = millis();
@@ -136,9 +201,7 @@ void loop() {
     digitalReader = digitalRead(digitalInput);
     makeHTTPRequest();
     // didn't understand what is the function for the mdns update.
-    espServer.handleClient();
 
-    MDNS.update();
   }
 }
 
