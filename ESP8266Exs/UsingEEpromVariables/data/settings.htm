@@ -2,6 +2,26 @@
 <html>
 <title>ControlSettings</title>
 <link href="style.css" rel="stylesheet" />
+<script>
+function loadValues(){
+		  console.log("Test");
+		  var xh = new XMLHttpRequest();
+		  xh.onreadystatechange = function(){
+			if (xh.readyState == 4){
+			  if(xh.status == 200) {
+				var res = JSON.parse(xh.responseText);
+				console.log(res);
+				//document.getElementById("submit").innerHTML = counter.toString();
+
+				//if(running) setTimeout(loadValues, reloadPeriod);
+			  } //else running = false;
+			}
+		  };
+		  xh.open("GET", "/response", true);
+		  xh.send("Submit");
+		};
+</script>
+
 <div class="container">
 
     <form id="settings">
@@ -26,7 +46,7 @@
                 <input name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
             </div>
             
-            <a id="submit" href="#">Submit</a>
+            <a id="submit" href="#" onclick=loadValues()>Submit</a>
         
         </div>
 

@@ -182,7 +182,11 @@ void setup() {
   });
 
   //espServer.on("/",HTTP_GET, webpage);
-  espServer.on("/", HTTP_POST, response);
+  //Configuring the web server
+  //server.on("/", handleRoot);
+  espServer.on("/response", HTTP_GET, response);
+
+  espServer.on("/", response);
   // start the server
   espServer.begin();
   Serial.println("HTTP server started");
@@ -199,13 +203,18 @@ void loop() {
     Serial.println("timeInterval is: " + String(timeInterval));
     Serial.println("mytime is: " + String(millis() - mytime));
     digitalReader = digitalRead(digitalInput);
-    makeHTTPRequest();
+    //makeHTTPRequest();
     // didn't understand what is the function for the mdns update.
 
   }
 }
 
 void response() {
+  Serial.println("In response arg is: " );
+  if (espServer.hasArg("submit")) {
+    Serial.print("submit arg:\t");
+    Serial.println(espServer.arg("submit"));
+  }
   if (espServer.hasArg("apiKey") && (espServer.arg("apiKey").length() > 0)) { // TODO check that it's not longer than 31 characters
     Serial.print("User entered:\t");
     Serial.println(espServer.arg("apiKey"));
