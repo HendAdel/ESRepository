@@ -2,29 +2,54 @@
 <html>
 <title>ControlSettings</title>
 <link href="style.css" rel="stylesheet" />
+
 <script>
-function loadValues(){
+	function loadValues(){
 		  console.log("Test");
 		  var xh = new XMLHttpRequest();
 		  xh.onreadystatechange = function(){
 			if (xh.readyState == 4){
 			  if(xh.status == 200) {
-				var res = JSON.parse(xh.responseText);
-				console.log(res);
+				//var res = JSON.parse(xh.responseText);
+				//console.log(res);
+				var apiKey = document.getElementById("apiKey").innerHTML;
+				var interval = document.getElementById("interval").innerHTML;
+				var enable = document.getElementById("enable").innerHTML;
+				console.log(apiKey);
+				console.log(interval);
+				console.log(enable);
+				var dataObj = [{"apiKey" : "apiKey", "interval" : "interval", "enable" : "enable"}];
+				var myJSON = JSON.stringify(dataObj);
+
 				//document.getElementById("submit").innerHTML = counter.toString();
 
 				//if(running) setTimeout(loadValues, reloadPeriod);
 			  } //else running = false;
 			}
 		  };
-		  xh.open("GET", "/response", true);
-		  xh.send("Submit");
+		  xh.open("Post", "/response", true);
+		  xh.send("dataObj");
 		};
+		
+	function submitData(){
+		form.addEventListener('submit', function (e) {
+		console.log("Test");
+			const formData = new JSONFormData(form).formData;
+    
+			fetch("/api", {
+				method: "POST",
+				body: JSON.stringify(formData),
+				headers: {"Content-Type": "application/json"
+			}
+		});
+		}, false);
+	};
+	
 </script>
 
 <div class="container">
 
-    <form id="settings">
+    <form id="settings" action='/settings' method='POST'>
 
         <div class="header">
         
@@ -38,15 +63,15 @@ function loadValues(){
 
         <div class="inputs">
         
-            <input type="apiKey" placeholder="API Key" autofocus />
+            <input id="apiKey" type="apiKey" name='apiKey' placeholder="API Key" autofocus />
         
-            <input type="interval" placeholder="Interval" />
+            <input id="interval" name='interval' type="interval" placeholder="Interval" />
             
             <div class="checkboxy">
-                <input name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
+                <input id="enable" name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
             </div>
             
-            <a id="submit" href="#" onclick=loadValues()>Submit</a>
+            <input id='submit' type='submit' name='SUBMIT' value='Submit' />
         
         </div>
 

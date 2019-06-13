@@ -17,10 +17,10 @@ float temperatureC;
 int digitalReader;
 
 // Replace with your SSID and Password
-//const char* ssid     = "Focus";
-//const char* password = "Focus@Pro";
-const char* ssid     = "Mi Phone";
-const char* password = "0100@Baba579";
+const char* ssid     = "Focus";
+const char* password = "Focus@Pro";
+//const char* ssid     = "Mi Phone";
+//const char* password = "0100@Baba579";
 
 
 // Replace with your unique Thing Speak WRITE API KEY
@@ -184,9 +184,9 @@ void setup() {
   //espServer.on("/",HTTP_GET, webpage);
   //Configuring the web server
   //server.on("/", handleRoot);
-  espServer.on("/response", HTTP_GET, response);
+  espServer.on("/settings", HTTP_POST, response);
 
-  espServer.on("/", response);
+  //espServer.on("/", response);
   // start the server
   espServer.begin();
   Serial.println("HTTP server started");
@@ -230,6 +230,8 @@ void response() {
   //else {
   //    server.send(400, "text/html", "<html><body><h1>HTTP Error 400</h1><p>Bad request. Please enter a value.</p></body></html>");
   //  }
+  espServer.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
+  //handleFileRead("/settings.htm");
 }
 
 // Establish a Wi-Fi connection with your router
