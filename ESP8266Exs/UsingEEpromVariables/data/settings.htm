@@ -65,8 +65,17 @@
         
             <input id="apiKey" type="apiKey" name='apiKey' placeholder="API Key" autofocus />
         
-            <input id="interval" name='interval' type="interval" placeholder="Interval" />
             
+            <select id="interval" name='interval' type="interval" placeholder="Interval">
+				<option value="0">Select Interval</option>
+				<option value="30">30 s</option>
+				<option value="60">1 min</option>
+				<option value="300">5 min</option>
+				<option value="900">15 min</option>
+				<option value="1800">30 min</option>
+				<option value="3600">1 h</option>
+			</select>
+			
             <div class="checkboxy">
                 <input id="enable" name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
             </div>

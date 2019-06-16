@@ -7,6 +7,7 @@
 
 String APIKey;
 int timeInterval;
+int enable;
 long mytime;
 
 const int sensorPin = A0;
@@ -92,6 +93,7 @@ bool handleFileRead(String path) {
   Serial.println("handleFileRead: " + path);
   // If the path is the root add the index.htm to it.
   if (path.endsWith("/")) {
+    Serial.println("path ends With / " + path);
     path += "settings.htm";
   }
   // call the getContentType method and set the result to string varible.
@@ -203,9 +205,11 @@ void loop() {
     Serial.println("timeInterval is: " + String(timeInterval));
     Serial.println("mytime is: " + String(millis() - mytime));
     digitalReader = digitalRead(digitalInput);
-    //makeHTTPRequest();
-    // didn't understand what is the function for the mdns update.
-
+    if(enable == 1){
+      Serial.println("enable is: true" );
+      makeHTTPRequest();
+    }
+    
   }
 }
 
@@ -222,16 +226,37 @@ void response() {
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
   if (espServer.hasArg("interval") && (espServer.arg("interval").length() > 0)) { // TODO check that it's not longer than 31 characters
-    Serial.print("User entered:\t");
-    Serial.println(espServer.arg("interval"));
+    Serial.print("User entered:\t");    
+    timeInterval =  espServer.arg("interval").toInt();
+    Serial.println(timeInterval);
+    //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
+  }
+  if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) { // TODO check that it's not longer than 31 characters
+    Serial.print("User cecked:\t");
+    Serial.println(espServer.arg("cecky"));
+     if(espServer.arg("cecky") == "0"){
+      enable = 0;
+      Serial.print("User cecked false: " + enable);
+    }
+    else if(espServer.arg("cecky") == "1"){
+       Serial.print("User cecked true: " + enable);
+      enable = 1;
+      Serial.print("User cecked:\t");
+    }
     //    timeInterval = int(espServer.arg("interval"));
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
   //else {
   //    server.send(400, "text/html", "<html><body><h1>HTTP Error 400</h1><p>Bad request. Please enter a value.</p></body></html>");
   //  }
-  espServer.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
-  //handleFileRead("/settings.htm");
+  //espServer.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
+  handleFileRead("/success.htm");
+  //espServer.on("/success", HTTP_GET, settingsSaved);
+
+}
+
+void settingsSaved(){
+   Serial.println("Success: ");
 }
 
 // Establish a Wi-Fi connection with your router
