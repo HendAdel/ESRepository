@@ -17,6 +17,13 @@ float voltage;
 float temperatureC;
 int digitalReader;
 
+
+uint addr = 0;
+struct {
+  String val = APIKey;
+  int interval = timeInterval;
+} data;
+
 // Replace with your SSID and Password
 const char* ssid     = "Focus";
 const char* password = "Focus@Pro";
@@ -121,28 +128,6 @@ void setup() {
 
   Serial.begin(115200);
 
-  uint addr = 0;
-
-  struct {
-    String val = "K7U14AOS7MM2OUUN";
-    int interval = 3;
-  } data;
-
-  // commit 512 bytes of ESP8266 flash (for "EEPROM" emulation)
-  // this step actually loads the content (512 bytes) of flash into
-  // a 512-byte-array cache in RAM
-  EEPROM.begin(512);
-
-  // replace values in byte-array cache with modified data
-  // no changes made to flash, all in local byte-array cache
-  EEPROM.put(addr, data);
-
-  // actually write the content of byte-array cache to
-  // hardware flash.  flash write occurs if and only if one or more byte
-  // in byte-array cache has been changed, but if so, ALL 512 bytes are
-  // written to flash
-  EEPROM.commit();
-
   // read bytes (i.e. sizeof(data) from "EEPROM"),
   // in reality, reads from byte-array cache
   // cast bytes into structure called data
@@ -205,11 +190,11 @@ void loop() {
     Serial.println("timeInterval is: " + String(timeInterval));
     Serial.println("mytime is: " + String(millis() - mytime));
     digitalReader = digitalRead(digitalInput);
-    if(enable == 1){
+    if (enable == 1) {
       Serial.println("enable is: true" );
       makeHTTPRequest();
     }
-    
+
   }
 }
 
@@ -226,7 +211,7 @@ void response() {
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
   if (espServer.hasArg("interval") && (espServer.arg("interval").length() > 0)) { // TODO check that it's not longer than 31 characters
-    Serial.print("User entered:\t");    
+    Serial.print("User entered:\t");
     timeInterval =  espServer.arg("interval").toInt();
     Serial.println(timeInterval);
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
@@ -234,12 +219,12 @@ void response() {
   if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) { // TODO check that it's not longer than 31 characters
     Serial.print("User cecked:\t");
     Serial.println(espServer.arg("cecky"));
-     if(espServer.arg("cecky") == "0"){
+    if (espServer.arg("cecky") == "0") {
       enable = 0;
       Serial.print("User cecked false: " + enable);
     }
-    else if(espServer.arg("cecky") == "1"){
-       Serial.print("User cecked true: " + enable);
+    else if (espServer.arg("cecky") == "1") {
+      Serial.print("User cecked true: " + enable);
       enable = 1;
       Serial.print("User cecked:\t");
     }
@@ -253,10 +238,26 @@ void response() {
   handleFileRead("/success.htm");
   //espServer.on("/success", HTTP_GET, settingsSaved);
 
-}
+//  struct {
+//    String val = APIKey;
+//    int interval = timeInterval;
+//  } data;
 
-void settingsSaved(){
-   Serial.println("Success: ");
+  // commit 512 bytes of ESP8266 flash (for "EEPROM" emulation)
+  // this step actually loads the content (512 bytes) of flash into
+  // a 512-byte-array cache in RAM
+  EEPROM.begin(512);
+
+  // replace values in byte-array cache with modified data
+  // no changes made to flash, all in local byte-array cache
+  EEPROM.put(addr, data);
+
+  // actually write the content of byte-array cache to
+  // hardware flash.  flash write occurs if and only if one or more byte
+  // in byte-array cache has been changed, but if so, ALL 512 bytes are
+  // written to flash
+  EEPROM.commit();
+
 }
 
 // Establish a Wi-Fi connection with your router

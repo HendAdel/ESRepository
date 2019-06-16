@@ -2,50 +2,7 @@
 <html>
 <title>ControlSettings</title>
 <link href="style.css" rel="stylesheet" />
-
-<script>
-	function loadValues(){
-		  console.log("Test");
-		  var xh = new XMLHttpRequest();
-		  xh.onreadystatechange = function(){
-			if (xh.readyState == 4){
-			  if(xh.status == 200) {
-				//var res = JSON.parse(xh.responseText);
-				//console.log(res);
-				var apiKey = document.getElementById("apiKey").innerHTML;
-				var interval = document.getElementById("interval").innerHTML;
-				var enable = document.getElementById("enable").innerHTML;
-				console.log(apiKey);
-				console.log(interval);
-				console.log(enable);
-				var dataObj = [{"apiKey" : "apiKey", "interval" : "interval", "enable" : "enable"}];
-				var myJSON = JSON.stringify(dataObj);
-
-				//document.getElementById("submit").innerHTML = counter.toString();
-
-				//if(running) setTimeout(loadValues, reloadPeriod);
-			  } //else running = false;
-			}
-		  };
-		  xh.open("Post", "/response", true);
-		  xh.send("dataObj");
-		};
-		
-	function submitData(){
-		form.addEventListener('submit', function (e) {
-		console.log("Test");
-			const formData = new JSONFormData(form).formData;
-    
-			fetch("/api", {
-				method: "POST",
-				body: JSON.stringify(formData),
-				headers: {"Content-Type": "application/json"
-			}
-		});
-		}, false);
-	};
 	
-</script>
 
 <div class="container">
 
@@ -65,9 +22,9 @@
         
             <input id="apiKey" type="apiKey" name='apiKey' placeholder="API Key" autofocus />
         
-            
-            <select id="interval" name='interval' type="interval" placeholder="Interval">
-				<option value="0">Select Interval</option>
+            <div class="box" type="interval">
+            <select id="interval" name='interval'  placeholder="Interval">
+				<option value="0">--Select Interval--</option>
 				<option value="30">30 s</option>
 				<option value="60">1 min</option>
 				<option value="300">5 min</option>
@@ -75,7 +32,7 @@
 				<option value="1800">30 min</option>
 				<option value="3600">1 h</option>
 			</select>
-			
+			</div>
             <div class="checkboxy">
                 <input id="enable" name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
             </div>
