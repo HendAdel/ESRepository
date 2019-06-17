@@ -5,9 +5,6 @@
 #include <ESP8266mDNS.h>
 #include <FS.h> // The library for 'SPIFFS'
 
-//String APIKey;
-//int timeInterval;
-//int enable;
 long mytime;
 
 const int sensorPin = A0;
@@ -17,16 +14,12 @@ float voltage;
 float temperatureC;
 int digitalReader;
 
-
 uint addr = 0;
 struct {
   char val[32] = "";
   int interval = 0;
   char enable = 1;
 } data;
-
-//char newAPIKey[32];
-//int newTimeInterval;
 
 // Replace with your SSID and Password
 const char* ssid     = "Focus";
@@ -65,7 +58,6 @@ String formatBytes(size_t bytes) {
     return String(bytes / 1024.0 / 1024.0 / 1024.0) + "GB";
   }
 }
-
 
 // check for the file extension to get the file type.
 String getContentType(String filename) {
@@ -194,12 +186,9 @@ void loop() {
   espServer.handleClient();
 
   MDNS.update();
-  //  Serial.println("in loop APIK " + data.val);
-  //  Serial.println("in loop interval " + String(data.interval));
-  //  Serial.println("in loop enable = : " + String(enable));
-  //  Serial.println("timeInterval is: " + String(data.interval));
-  //  Serial.println("mytime is: " + String(millis() - mytime));
-  delay(500);
+ 
+  //delay(500);
+  
   // make the request if the interval is valid
   if ((millis() - mytime) > (data.interval * 1000)) {
     mytime = millis();
@@ -210,7 +199,6 @@ void loop() {
       Serial.println("enable is: true" );
       makeHTTPRequest();
     }
-
   }
 }
 
@@ -220,20 +208,23 @@ void response() {
     Serial.print("submit arg:\t");
     Serial.println(espServer.arg("submit"));
   }
-  if (espServer.hasArg("apiKey") && (espServer.arg("apiKey").length() > 0)) { // TODO check that it's not longer than 31 characters
+  if (espServer.hasArg("apiKey") && (espServer.arg("apiKey").length() > 0)) {
+    if((espServer.arg("apiKey").length() > 20)){
+      return espServer.send(500, "text/plain", "BAD ARGS");
+    }
     Serial.print("User entered:\t");
     Serial.println(espServer.arg("apiKey"));
     //String newAPIKey = espServer.arg("apiKey");
     espServer.arg("apiKey").toCharArray(data.val, 32);
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
-  if (espServer.hasArg("interval") && (espServer.arg("interval").length() > 0)) { // TODO check that it's not longer than 31 characters
+  if (espServer.hasArg("interval") && (espServer.arg("interval").length() > 0)) { 
     Serial.print("User entered:\t");
     data.interval =  espServer.arg("interval").toInt();
     Serial.println(data.interval);
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
-  if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) { // TODO check that it's not longer than 31 characters
+  if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) {
     Serial.print("User cecked:\t");
     Serial.println(espServer.arg("cecky"));
     if (espServer.arg("cecky") == "0") {
@@ -244,17 +235,9 @@ void response() {
       Serial.print("User cecked true: " + data.enable);
       data.enable = 1;
       Serial.print("User cecked:\t");
-    }
-    //    timeInterval = int(espServer.arg("interval"));
-    //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
+    }    
   }
-  //else {
-  //    server.send(400, "text/html", "<html><body><h1>HTTP Error 400</h1><p>Bad request. Please enter a value.</p></body></html>");
-  //  }
-  //espServer.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
-
-  //espServer.on("/success", HTTP_GET, settingsSaved);
-
+ 
   struct {
     String val = "";
     int interval = 0;
@@ -274,16 +257,11 @@ void response() {
   // in byte-array cache has been changed, but if so, ALL 512 bytes are
   // written to flash
   EEPROM.commit();
-  //  sprintf(data.val,"");
-  //  data.interval = 0;
-  //  EEPROM.get(addr, data);
-  //  APIKey = String(ldata.val);
-  //  timeInterval =  ldata.interval; //String(ldata.interval).toInt();
-
+  
   Serial.println("In Response Values are: " + String(data.val) + "," + String(data.interval));
-  delay(500);
+  //delay(500);
   handleFileRead("/success.htm");
-
+  
 }
 
 // Establish a Wi-Fi connection with your router
