@@ -128,6 +128,11 @@ void setup() {
 
   Serial.begin(115200);
 
+  // commit 512 bytes of ESP8266 flash (for "EEPROM" emulation)
+  // this step actually loads the content (512 bytes) of flash into
+  // a 512-byte-array cache in RAM
+  EEPROM.begin(512);
+
   // read bytes (i.e. sizeof(data) from "EEPROM"),
   // in reality, reads from byte-array cache
   // cast bytes into structure called data
@@ -135,7 +140,7 @@ void setup() {
   APIKey = String(data.val);
   timeInterval = int(data.interval);
 
-  Serial.println("Values are: " + String(APIKey) + "," + String(timeInterval));
+  Serial.println("Values are: " + String(APIKey) + "," + String(data.interval));
 
   pinMode(digitalInput, INPUT);
 
@@ -183,7 +188,11 @@ void loop() {
   espServer.handleClient();
 
   MDNS.update();
-
+  Serial.println("in loop APIK " + APIKey);
+  Serial.println("in loop interval " + String(timeInterval));
+  Serial.println("in loop enable = : " + String(enable));
+  Serial.println("timeInterval is: " + String(timeInterval));
+  Serial.println("mytime is: " + String(millis() - mytime));
   // make the request if the interval is valid
   if ((millis() - mytime) > (timeInterval * 1000)) {
     mytime = millis();
@@ -238,10 +247,10 @@ void response() {
   handleFileRead("/success.htm");
   //espServer.on("/success", HTTP_GET, settingsSaved);
 
-//  struct {
-//    String val = APIKey;
-//    int interval = timeInterval;
-//  } data;
+  //  struct {
+  //    String val = APIKey;
+  //    int interval = timeInterval;
+  //  } data;
 
   // commit 512 bytes of ESP8266 flash (for "EEPROM" emulation)
   // this step actually loads the content (512 bytes) of flash into
