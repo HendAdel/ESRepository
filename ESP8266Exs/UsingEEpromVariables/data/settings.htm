@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html>
+<head>
 <title>ControlSettings</title>
 <link href="style.css" rel="stylesheet" />
 	
 
+ </head>
+ <body onload="loadValues();">
 <div class="container">
 
     <form id="settings" action='/settings' method='POST'>
@@ -20,7 +23,7 @@
 
         <div class="inputs">
         
-            <input id="apiKey" type="apiKey" name='apiKey' placeholder="API Key" autofocus />
+            <input id="apiKey" type="apiKey" name='apiKey' value = "" placeholder="API Key" autofocus/>
         
             <div class="box" type="interval">
             <select id="interval" name='interval'  placeholder="Interval">
@@ -36,6 +39,7 @@
             <div class="checkboxy">
                 <input id="enable" name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
             </div>
+			<div id = "amr"></div>
             
             <input id='submit' type='submit' name='SUBMIT' value='Submit' />
         
@@ -43,4 +47,38 @@
 
     </form>
 </div>
+<script>
+
+function loadValues(){
+		  console.log("Test");
+		  var xh = new XMLHttpRequest();
+		  xh.onreadystatechange = function(){
+			if (xh.readyState == 4){
+			console.log("readyState");
+			  if(xh.status == 200) {
+			  console.log("status");
+			   console.log(xh.responseText);
+				var res = JSON.parse(xh.responseText);
+				console.log(res.toString());
+				//counter = (res.counter);
+				//document.getElementById("apiKey").innerHTML = res.toString();
+				document.getElementById("apiKey").value=res["apiKey"]; //res.apiKey;
+				document.getElementById("interval").value=res["interval"];
+				if(res["enableD"] == 1){				
+				document.getElementById("enable").checked=true;
+				}
+				else if(res["enableD"] == 0){				
+				document.getElementById("enable").checked=false;
+				}
+				//document.getElementById("apiKey").innerHTML = xh.responseText;
+				console.log("key " + xh.responseText);
+				//if(running) setTimeout(loadValues, reloadPeriod);
+			  } //else running = false;
+			}
+		  };
+		  xh.open("GET", "/apiKey", true);
+		  xh.send(null);
+		};
+</script>
+ </body>
 </html>

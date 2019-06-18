@@ -23,7 +23,7 @@ uint addr = 0;
 struct {
   char val[32] = "";
   int interval = 0;
-  char enable = 1;
+  int enable = 1;
 } data;
 
 // Replace with your SSID and Password
@@ -292,7 +292,7 @@ void setup() {
   Serial.println("Values are: " + String(data.val) + "," + String(data.interval));
   //}
 
-  WiFiManagerSetup();
+  //WiFiManagerSetup();
   pinMode(digitalInput, INPUT);
 
   //Start flash file system
@@ -323,11 +323,14 @@ void setup() {
       espServer.send(404, "text/plain", "FileNotFound");
     }
   });
+  espServer.on("/apiKey", HTTP_GET, bindValues);
 
   //espServer.on("/",HTTP_GET, webpage);
   //Configuring the web server
   //server.on("/", handleRoot);
   espServer.on("/settings", HTTP_POST, response);
+
+  //bindValues();
 
   //espServer.on("/", response);
   // start the server
@@ -337,15 +340,17 @@ void setup() {
 
 void loop() {
   espServer.handleClient();
-  Serial.println("timeInterval is: " + String(data.interval));
-  Serial.println("api key is: " + String(data.val));
-  Serial.println("enable is: " + String(data.enable));
+  //  Serial.println("timeInterval is: " + String(data.interval));
+  //  Serial.println("api key is: " + String(data.val));
+  //  Serial.println("enable is: " + data.enable);
+  //  Serial.println("millis - mytime is: " + String(millis() - mytime));
+  //  delay(500);
   MDNS.update();
 
-  delay(500);
+  //  delay(500);
 
   // make the request if the interval is valid
-  if ((millis() - mytime) > (data.interval * 1000)) {
+  if ((millis() - mytime) > (data.interval * 1000) && data.interval >= 30) {
     mytime = millis();
     Serial.println("timeInterval is: " + String(data.interval));
     Serial.println("mytime is: " + String(millis() - mytime));
@@ -413,7 +418,7 @@ void response() {
   // written to flash
   EEPROM.commit();
 
-  Serial.println("In Response Values are: " + String(data.val) + "," + String(data.interval));
+  Serial.println("In Response Values are: " + String(data.val) + "," + String(data.interval) + "," + String(data.enable));
   delay(500);
   handleFileRead("/success.htm");
 
@@ -499,4 +504,21 @@ void makeHTTPRequest() {
 
   Serial.println("\nclosing connection");
   client.stop();
+}
+
+void bindValues() {
+  Serial.println("\nin bindValues");
+
+  String json = "{";
+  json += "\"apiKey\": \"" + String(data.val) + "\" ,\"interval\":" + data.interval + ",\"enableD\":" + data.enable;
+  //  json += ",\"interval\":\"" + data.interval;
+  //  json += ",\ "enableD\":\"" + data.enable;
+  json += "}";
+  // send the json
+  espServer.send(200, "text/json", json);
+  // clear json variable.
+  //json = String();
+  Serial.println("\nending bindValues");
+  //send the data object to the server
+  //espServer.send(200, "text/plain", String(data));
 }
