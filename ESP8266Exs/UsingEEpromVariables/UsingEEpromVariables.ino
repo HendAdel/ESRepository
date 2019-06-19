@@ -23,7 +23,7 @@ uint addr = 0;
 struct {
   char val[32] = "";
   int interval = 0;
-  int enable = 1;
+  unsigned int enable;
 } data;
 
 // Replace with your SSID and Password
@@ -292,7 +292,7 @@ void setup() {
   Serial.println("Values are: " + String(data.val) + "," + String(data.interval));
   //}
 
-  //WiFiManagerSetup();
+  WiFiManagerSetup();
   pinMode(digitalInput, INPUT);
 
   //Start flash file system
@@ -310,7 +310,7 @@ void setup() {
 
   }
   mytime = millis();
-  initWifi();
+  //initWifi();
 
 
   // Start mdns for the file system
@@ -378,26 +378,36 @@ void response() {
     espServer.arg("apiKey").toCharArray(data.val, 32);
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
+  else {
+    return espServer.send(500, "text/plain", "BAD ARGS");
+  }
   if (espServer.hasArg("interval") && (espServer.arg("interval").length() > 0)) {
     Serial.print("User entered:\t");
     data.interval =  espServer.arg("interval").toInt();
     Serial.println(data.interval);
     //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
-  if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) {
+  else {
+    return espServer.send(500, "text/plain", "BAD ARGS");
+  }
+  //  if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) {
+  if (espServer.hasArg("checky")) {
     Serial.print("User cecked:\t");
-    Serial.println(espServer.arg("cecky"));
-    if (espServer.arg("cecky") == "0") {
+    Serial.println(espServer.arg("checky"));
+    if (espServer.arg("checky") == "0") {
       data.enable = 0;
       Serial.print("User cecked false: " + data.enable);
     }
-    else if (espServer.arg("cecky") == "1") {
+    else if (espServer.arg("checky") == "1") {
       Serial.print("User cecked true: " + data.enable);
       data.enable = 1;
       Serial.print("User cecked:\t");
     }
   }
-
+  else {
+    data.enable = 0;
+    Serial.print("User cecked false: " + data.enable);
+  }
   struct {
     String val = "";
     int interval = 0;
@@ -419,7 +429,7 @@ void response() {
   EEPROM.commit();
 
   Serial.println("In Response Values are: " + String(data.val) + "," + String(data.interval) + "," + String(data.enable));
-  delay(500);
+  //delay(500);
   handleFileRead("/success.htm");
 
 }

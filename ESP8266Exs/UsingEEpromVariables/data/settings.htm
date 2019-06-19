@@ -37,7 +37,7 @@
 			</select>
 			</div>
             <div class="checkboxy">
-                <input id="enable" name="cecky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
+                <input name="checky" id="checky" value="1" type="checkbox" /><label class="terms">Enable</label>
             </div>
 			<div id = "amr"></div>
             
@@ -65,10 +65,10 @@ function loadValues(){
 				document.getElementById("apiKey").value=res["apiKey"]; //res.apiKey;
 				document.getElementById("interval").value=res["interval"];
 				if(res["enableD"] == 1){				
-				document.getElementById("enable").checked=true;
+				document.getElementById("checky").checked=true;
 				}
 				else if(res["enableD"] == 0){				
-				document.getElementById("enable").checked=false;
+				document.getElementById("checky").checked=false;
 				}
 				//document.getElementById("apiKey").innerHTML = xh.responseText;
 				console.log("key " + xh.responseText);
