@@ -27,10 +27,10 @@ struct {
 } data;
 
 // Replace with your SSID and Password
-const char* ssid     = "Focus";
-const char* password = "Focus@Pro";
-//const char* ssid     = "Mi Phone";
-//const char* password = "0100@Baba579";
+//const char* ssid     = "Focus";
+//const char* password = "Focus@Pro";
+const char* ssid     = "Mi Phone";
+const char* password = "0100@Baba579";
 
 
 // Replace with your unique Thing Speak WRITE API KEY
@@ -292,8 +292,6 @@ void setup() {
   Serial.println("Values are: " + String(data.val) + "," + String(data.interval));
   //}
 
-  WiFiManagerSetup();
-  pinMode(digitalInput, INPUT);
 
   //Start flash file system
   SPIFFS.begin();
@@ -309,6 +307,8 @@ void setup() {
     }
 
   }
+  WiFiManagerSetup();
+  pinMode(digitalInput, INPUT);
   mytime = millis();
   //initWifi();
 
