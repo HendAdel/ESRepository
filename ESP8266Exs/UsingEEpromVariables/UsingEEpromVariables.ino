@@ -10,13 +10,21 @@
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 
+#include "DHTesp.h"
+
+#define DHTpin 14    //D5 of NodeMCU is GPIO14
+
+DHTesp dht;
+
 long mytime;
+
 
 const int sensorPin = A0;
 const int digitalInput = D1;
 int reading;
 float voltage;
 float temperatureC;
+float humidity;
 int digitalReader;
 
 uint addr = 0;
@@ -276,6 +284,8 @@ void setup() {
 
   Serial.begin(115200);
 
+  dht.setup(DHTpin, DHTesp::DHT11); //for DHT11 Connect DHT sensor to GPIO 17
+
   // commit 512 bytes of ESP8266 flash (for "EEPROM" emulation)
   // this step actually loads the content (512 bytes) of flash into
   // a 512-byte-array cache in RAM
@@ -355,6 +365,9 @@ void loop() {
     Serial.println("timeInterval is: " + String(data.interval));
     Serial.println("mytime is: " + String(millis() - mytime));
     digitalReader = digitalRead(digitalInput);
+
+
+
     if (data.enable == 1) {
       Serial.println("enable is: true" );
       makeHTTPRequest();
@@ -459,24 +472,32 @@ void initWifi() {
 
 // Make an HTTP request to Thing Speak
 void makeHTTPRequest() {
-  // Read the sensor data
-  reading = analogRead(sensorPin);
 
-  // calc the volt
-  voltage = reading * (3300 / 1024);
-  // print the volts value on the serial window
-  Serial.print(voltage);
-  Serial.println(" volts");
+  /*
+    // Read the sensor data
+    reading = analogRead(sensorPin);
 
-  // calc the Temperature from the volts
-  temperatureC = (voltage - 500) / 100;
+    // calc the volt
+    voltage = reading * (3300 / 1024);
+    // print the volts value on the serial window
+    Serial.print(voltage);
+    Serial.println(" volts");
+
+    // calc the Temperature from the volts
+    temperatureC = (voltage - 500) / 100;
+  */
+  //int chk = dht.read11(DHT11_PIN);
+  delay(dht.getMinimumSamplingPeriod());
+
+  temperatureC = dht.getTemperature();
+  humidity = dht.getHumidity();
 
   // print the volts value on the serial window
   Serial.println("Temperature is: ");
   Serial.print(temperatureC);
   Serial.println(" degrees C");
-  Serial.println("Digital input is: ");
-  Serial.print(digitalReader);
+  Serial.println("Humidity is: ");
+  Serial.print(humidity);
 
   // wait 10 second
   delay(10000);
@@ -496,7 +517,12 @@ void makeHTTPRequest() {
 
   Serial.print("Request resource: ");
   Serial.println(resource);
-  client.print(String("GET ") + resource + String(data.val) + "&field1=" + temperatureC  + "&field2=" + digitalReader +
+  /* client.print(String("GET ") + resource + String(data.val) + "&field1=" + temperatureC  + "&field2=" + digitalReader +
+                " HTTP/1.1\r\n" +
+                "Host: " + server + "\r\n" +
+                "Connection: close\r\n\r\n");*/
+
+  client.print(String("GET ") + resource + String(data.val) + "&field1=" + temperatureC  + "&field2=" + humidity +
                " HTTP/1.1\r\n" +
                "Host: " + server + "\r\n" +
                "Connection: close\r\n\r\n");
