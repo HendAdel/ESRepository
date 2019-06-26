@@ -17,15 +17,8 @@
 DHTesp dht;
 
 long mytime;
-
-
-const int sensorPin = A0;
-const int digitalInput = D1;
-int reading;
-float voltage;
 float temperatureC;
 float humidity;
-int digitalReader;
 
 uint addr = 0;
 struct {
@@ -40,12 +33,6 @@ struct {
 const char* ssid     = "Mi Phone";
 const char* password = "0100@Baba579";
 
-
-// Replace with your unique Thing Speak WRITE API KEY
-//const char* apiKey = "K7U14AOS7MM2OUUN";
-//First channel api key
-//const char* apiKey = "XN1BFT74XNJ18NR1";
-
 const char* resource = "/update?api_key=";
 
 // Thing Speak API server
@@ -59,12 +46,7 @@ const char* host = "esp2866fs";
 ESP8266WebServer espServer(80);
 
 
-// New definitions
-
-char http_server[40];
-char http_port[6] = "8080";
-char username[34] = "admin";
-char userpassword[34] = "admin";
+//  Wifi managerr access point name and password
 char* APName = "AutoConnectAP";
 char* APPassword = "password";
 char* SSID;
@@ -72,14 +54,13 @@ char* SSID;
 //flag for saving data
 bool shouldSaveConfig = false;
 
-// Methods from WiFi Manager
 //callback notifying us of the need to save config
 void saveConfigCallback () {
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
 
-
+// Read configration file
 void ReadConfig() {
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
@@ -97,13 +78,7 @@ void ReadConfig() {
       json.printTo(Serial);
       if (json.success()) {
         Serial.println("\nparsed json");
-        /*
-          char username[34] = "admin";
-          char userpassword[34] = "admin";*/
-        strcpy(http_server, json["http_server"]);
-        strcpy(http_port, json["http_port"]);
-        strcpy(username, json["username"]);
-        strcpy(userpassword, json["userpassword"]);
+       
       } else {
         Serial.println("failed to load json config");
       }
@@ -113,7 +88,6 @@ void ReadConfig() {
 }
 
 void WiFiManagerSetup() {
-  // WiFi Manager setup code ****************************************** Start****************************
   //read configuration from FS json
   Serial.println("mounting FS...");
 
@@ -126,42 +100,12 @@ void WiFiManagerSetup() {
   //end read
 
 
-
-  // The extra parameters to be configured (can be either global or just in the setup)
-  // After connecting, parameter.getValue() will get you the configured value
-  // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_http_server("server", "http server", http_server, 40);
-  WiFiManagerParameter custom_http_port("port", "http port", http_port, 6);
-  WiFiManagerParameter custom_username("username", "username", username, 32);
-  WiFiManagerParameter custom_userpassword("userpassword", "userpassword", userpassword, 32);
-
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-
-  //set static ip
-  //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-
-  //add all your parameters here
-  wifiManager.addParameter(&custom_http_server);
-  wifiManager.addParameter(&custom_http_port);
-  wifiManager.addParameter(&custom_username);
-  wifiManager.addParameter(&custom_userpassword);
-
-  //reset settings - for testing
-  //wifiManager.resetSettings();
-
-  //set minimu quality of signal so it ignores AP's under that quality
-  //defaults to 8%
-  //wifiManager.setMinimumSignalQuality();
-
-  //sets timeout until configuration portal gets turned off
-  //useful to make it all retry or go to sleep
-  //in seconds
-  //wifiManager.setTimeout(120);
 
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
@@ -176,34 +120,31 @@ void WiFiManagerSetup() {
   }
 
   //if you get here you have connected to the WiFi
-  Serial.println("connected...yeey :)");
-  //read updated parameters
-  strcpy(http_server, custom_http_server.getValue());
-  strcpy(http_port, custom_http_port.getValue());
-  strcpy(username, custom_username.getValue());
-  strcpy(userpassword, custom_userpassword.getValue());
+  Serial.println("connected...successfully :)");
 
-  //save the custom parameters to FS
-  if (shouldSaveConfig) {
-    Serial.println("saving config");
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
-    json["http_server"] = http_server;
-    json["http_port"] = http_port;
-    json["username"] = username;
-    json["userpassword"] = userpassword;
+  /*
+    //save the custom parameters to FS
+    if (shouldSaveConfig) {
+      Serial.println("saving config");
+      DynamicJsonBuffer jsonBuffer;
+      JsonObject& json = jsonBuffer.createObject();
+      json["http_server"] = http_server;
+      json["http_port"] = http_port;
+      json["username"] = username;
+      json["userpassword"] = userpassword;
 
-    File configFile = SPIFFS.open("/config.json", "w");
-    if (!configFile) {
-      Serial.println("failed to open config file for writing");
+      File configFile = SPIFFS.open("/config.json", "w");
+      if (!configFile) {
+        Serial.println("failed to open config file for writing");
+      }
+
+      json.printTo(Serial);
+      json.printTo(configFile);
+      configFile.close();
+      //end save
+      ReadConfig();
     }
-
-    json.printTo(Serial);
-    json.printTo(configFile);
-    configFile.close();
-    //end save
-    ReadConfig();
-  }
+  */
 }
 
 //format bytes size to known bytes units.
@@ -318,10 +259,7 @@ void setup() {
 
   }
   WiFiManagerSetup();
-  pinMode(digitalInput, INPUT);
   mytime = millis();
-  //initWifi();
-
 
   // Start mdns for the file system
   MDNS.begin(host);
@@ -335,14 +273,10 @@ void setup() {
   });
   espServer.on("/apiKey", HTTP_GET, bindValues);
 
-  //espServer.on("/",HTTP_GET, webpage);
   //Configuring the web server
-  //server.on("/", handleRoot);
   espServer.on("/settings", HTTP_POST, response);
 
-  //bindValues();
 
-  //espServer.on("/", response);
   // start the server
   espServer.begin();
   Serial.println("HTTP server started");
@@ -364,10 +298,7 @@ void loop() {
     mytime = millis();
     Serial.println("timeInterval is: " + String(data.interval));
     Serial.println("mytime is: " + String(millis() - mytime));
-    digitalReader = digitalRead(digitalInput);
-
-
-
+   
     if (data.enable == 1) {
       Serial.println("enable is: true" );
       makeHTTPRequest();
@@ -381,29 +312,28 @@ void response() {
     Serial.print("submit arg:\t");
     Serial.println(espServer.arg("submit"));
   }
+  // Check if the api key not null and not more than 20 char.
   if (espServer.hasArg("apiKey") && (espServer.arg("apiKey").length() > 0)) {
     if ((espServer.arg("apiKey").length() > 20)) {
       return espServer.send(500, "text/plain", "BAD ARGS");
     }
     Serial.print("User entered:\t");
     Serial.println(espServer.arg("apiKey"));
-    //String newAPIKey = espServer.arg("apiKey");
     espServer.arg("apiKey").toCharArray(data.val, 32);
-    //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
   else {
     return espServer.send(500, "text/plain", "BAD ARGS");
   }
+  // Check for interval
   if (espServer.hasArg("interval") && (espServer.arg("interval").length() > 0)) {
     Serial.print("User entered:\t");
     data.interval =  espServer.arg("interval").toInt();
     Serial.println(data.interval);
-    //    server.send(200, "text/html", "<html><body><h1>Successful</h1><a href='/'>Home</a></body></html>");
   }
   else {
     return espServer.send(500, "text/plain", "BAD ARGS");
   }
-  //  if (espServer.hasArg("cecky") && (espServer.arg("cecky").length() > 0)) {
+  // Check for enable status, no check for length here because if it > 0 it will be true all the time.
   if (espServer.hasArg("checky")) {
     Serial.print("User cecked:\t");
     Serial.println(espServer.arg("checky"));
@@ -446,9 +376,9 @@ void response() {
   handleFileRead("/success.htm");
 
 }
-
-// Establish a Wi-Fi connection with your router
-void initWifi() {
+/*
+  // Establish a Wi-Fi connection with your router
+  void initWifi() {
   Serial.println("Connecting to: ");
   Serial.print(ssid);
   WiFi.begin(ssid, password);
@@ -468,31 +398,17 @@ void initWifi() {
   Serial.print(millis());
   Serial.print(", IP address: ");
   Serial.println(WiFi.localIP());
-}
+  }*/
 
 // Make an HTTP request to Thing Speak
 void makeHTTPRequest() {
 
-  /*
-    // Read the sensor data
-    reading = analogRead(sensorPin);
-
-    // calc the volt
-    voltage = reading * (3300 / 1024);
-    // print the volts value on the serial window
-    Serial.print(voltage);
-    Serial.println(" volts");
-
-    // calc the Temperature from the volts
-    temperatureC = (voltage - 500) / 100;
-  */
-  //int chk = dht.read11(DHT11_PIN);
   delay(dht.getMinimumSamplingPeriod());
-
+  // Read the sensor data - temperature and humidity
   temperatureC = dht.getTemperature();
   humidity = dht.getHumidity();
 
-  // print the volts value on the serial window
+  // print the temperature and humidity values on the serial window
   Serial.println("Temperature is: ");
   Serial.print(temperatureC);
   Serial.println(" degrees C");
@@ -517,10 +433,6 @@ void makeHTTPRequest() {
 
   Serial.print("Request resource: ");
   Serial.println(resource);
-  /* client.print(String("GET ") + resource + String(data.val) + "&field1=" + temperatureC  + "&field2=" + digitalReader +
-                " HTTP/1.1\r\n" +
-                "Host: " + server + "\r\n" +
-                "Connection: close\r\n\r\n");*/
 
   client.print(String("GET ") + resource + String(data.val) + "&field1=" + temperatureC  + "&field2=" + humidity +
                " HTTP/1.1\r\n" +
@@ -547,14 +459,9 @@ void bindValues() {
 
   String json = "{";
   json += "\"apiKey\": \"" + String(data.val) + "\" ,\"interval\":" + data.interval + ",\"enableD\":" + data.enable;
-  //  json += ",\"interval\":\"" + data.interval;
-  //  json += ",\ "enableD\":\"" + data.enable;
   json += "}";
   // send the json
   espServer.send(200, "text/json", json);
-  // clear json variable.
-  //json = String();
+
   Serial.println("\nending bindValues");
-  //send the data object to the server
-  //espServer.send(200, "text/plain", String(data));
 }
