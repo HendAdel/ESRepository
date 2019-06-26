@@ -10,6 +10,7 @@ body {
     margin: 0 auto;
 }
 
+
 #settings {
     padding: 0px 25px 25px;
     background: #fff;
@@ -25,6 +26,16 @@ body {
 
 #settings .header {
     margin-bottom: 20px;
+}
+
+#settings .header img {
+	text-align: center;
+    vertical-align: middle;
+    display: table-cell;
+	margin-top: 20px;
+	margin-bottom: 20px;
+	margin-left: 43px;
+	margin-right: 20px;
 }
 
 #settings .header h3 {
